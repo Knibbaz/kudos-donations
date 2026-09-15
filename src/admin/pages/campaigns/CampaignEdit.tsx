@@ -23,6 +23,10 @@ import { SLOT_HEADER_ACTIONS } from '../../slot-names';
 import { StickySaveBar } from '../../components';
 import GenerateShortcode from './GenerateShortcode';
 
+const normalizePackages = (
+	packages: Campaign['packages']
+): Campaign['packages'] => (Array.isArray(packages) ? packages : []);
+
 const NavigationButtons = ({ campaign, onBack }): ReactNode => (
 	<>
 		<Button
@@ -45,6 +49,7 @@ const CampaignEdit = (): ReactNode => {
 		defaultValues: {
 			...campaign,
 			title: campaign?.title,
+			packages: normalizePackages(campaign?.packages),
 		},
 		reValidateMode: 'onSubmit',
 	});
@@ -56,6 +61,7 @@ const CampaignEdit = (): ReactNode => {
 			reset({
 				...campaign,
 				title: campaign.title,
+				packages: normalizePackages(campaign.packages),
 			});
 		}
 	}, [campaign, reset]);

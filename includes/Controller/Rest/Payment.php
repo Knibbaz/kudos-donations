@@ -79,6 +79,11 @@ class Payment extends BaseRestController {
 						'required'          => false,
 						'sanitize_callback' => 'sanitize_text_field',
 					],
+					'package_id'    => [
+						'type'              => FieldType::STRING,
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					],
 					'value'         => [
 						'type'              => FieldType::NUMBER,
 						'required'          => true,
@@ -259,6 +264,23 @@ class Payment extends BaseRestController {
 		/** @var CampaignEntity $campaign */
 		$campaign = $this->campaign_repository->get( (int) $values['campaign_id'] );
 
+		// Resolve the selected package (if any) and trust the server-side amount.
+		$package = null;
+		if ( ! empty( $values['package_id'] ) ) {
+			$package = $this->get_campaign_package( $campaign, (string) $values['package_id'] );
+			if ( null === $package ) {
+				return new WP_REST_Response(
+					[
+						'success' => false,
+						'message' => __( 'Selected package is not valid.', 'kudos-donations' ),
+					],
+					400
+				);
+			}
+			// The package amount is authoritative — never trust the client-supplied value.
+			$values['value'] = $package['amount'];
+		}
+
 		$defaults = [
 			'currency'         => $campaign->currency,
 			'recurring_length' => 0,
@@ -339,11 +361,13 @@ class Payment extends BaseRestController {
 		$transaction        = $this->transaction_repository->new_entity(
 			[
 				'donor_id'      => $donor_id ?? null,
+				'title'         => $package['title'] ?? null,
 				'value'         => $args['value'],
 				'currency'      => $args['currency'],
 				'status'        => PaymentStatus::OPEN,
 				'mode'          => $vendor->get_api_mode(),
 				'sequence_type' => 'true' === $args['recurring'] ? 'first' : 'oneoff',
+				'package_id'    => $package['id'] ?? null,
 				'campaign_id'   => $args['campaign_id'],
 				'message'       => $args['message'],
 				'vendor'        => $vendor::get_slug(),
@@ -395,6 +419,28 @@ class Payment extends BaseRestController {
 			],
 			500
 		);
+	}
+
+	/**
+	 * Find a package within the campaign by its id.
+	 *
+	 * @param CampaignEntity $campaign The campaign entity.
+	 * @param string         $package_id The package id to find.
+	 * @return array{id: string, title: string, description: string, amount: float}|null
+	 *         The matching package, or null when not found.
+	 */
+	private function get_campaign_package( CampaignEntity $campaign, string $package_id ): ?array {
+		if ( empty( $campaign->packages ) ) {
+			return null;
+		}
+
+		foreach ( $campaign->packages as $package ) {
+			if ( \is_array( $package ) && ( $package['id'] ?? null ) === $package_id ) {
+				return $package;
+			}
+		}
+
+		return null;
 	}
 
 	/**

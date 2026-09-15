@@ -19,6 +19,7 @@ class TransactionEntity extends BaseEntity {
 	public string $status = PaymentStatus::OPEN;
 	public ?string $method;
 	public ?string $sequence_type;
+	public ?string $package_id;
 	public string $currency;
 	public float $value;
 	public ?int $donor_id;

@@ -34,6 +34,7 @@ class TransactionsTable extends BaseTable {
 			method varchar(50),
 			mode varchar(20),
 			sequence_type varchar(20),
+			package_id varchar(64) DEFAULT NULL,
 			donor_id bigint(20) unsigned DEFAULT NULL,
 			campaign_id bigint(20) unsigned DEFAULT NULL,
 			subscription_id bigint(20) unsigned DEFAULT NULL,

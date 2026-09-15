@@ -4,7 +4,12 @@ import React from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import BaseTab from './BaseTab';
 import { useEffect, useMemo } from '@wordpress/element';
-import { RadioGroupControl, TextControl, ToggleControl } from '../../controls';
+import {
+	RadioGroupControl,
+	TextControl,
+	ToggleControl,
+	PackageControl,
+} from '../../controls';
 import type { RadioGroupOption } from '../../controls';
 import { ProgressBar } from '../../components';
 import type { Campaign } from '../../../types/entity';
@@ -22,6 +27,7 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 		minimum_donation,
 		donation_type,
 		fixed_amounts,
+		packages,
 		amount_type,
 		maximum_donation,
 		show_goal,
@@ -38,6 +44,7 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 	const watchOpen: string = useWatch({ name: 'valueOpen' });
 	const watchValue: number = useWatch({ name: 'value' });
 	const watchEmail: string = useWatch({ name: 'email' });
+	const watchPackage: string = useWatch({ name: 'package_id' });
 	const valueError = sprintf(
 		/* translators: %d is the amount in euros. */
 		_n(
@@ -73,9 +80,23 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 	}, [isRecurringAllowed, setValue]);
 
 	useEffect(() => {
+		if (watchPackage) {
+			const pkg = packages?.find((p) => p.id === watchPackage);
+			if (pkg) {
+				setValue('value', pkg.amount.toString(), {
+					shouldValidate: true,
+				});
+				setValue('valueFixed', '');
+				setValue('valueOpen', '');
+			}
+		}
+	}, [setValue, watchPackage, packages]);
+
+	useEffect(() => {
 		if (watchFixed) {
 			setValue('value', watchFixed, { shouldValidate: true });
 			setValue('valueOpen', '');
+			setValue('package_id', '');
 		}
 	}, [setValue, watchFixed]);
 
@@ -83,6 +104,7 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 		if (watchOpen) {
 			setValue('value', watchOpen, { shouldValidate: true });
 			setValue('valueFixed', '');
+			setValue('package_id', '');
 		}
 	}, [setValue, watchOpen]);
 
@@ -112,6 +134,16 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 					/>
 				</div>
 			)}
+
+			{packages &&
+				packages.length > 0 &&
+				donation_type !== 'recurring' && (
+					<PackageControl
+						name="package_id"
+						packages={packages}
+						currency={currency}
+					/>
+				)}
 
 			{singleValue && (
 				<p

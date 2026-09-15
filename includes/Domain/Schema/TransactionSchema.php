@@ -26,6 +26,7 @@ class TransactionSchema extends BaseSchema {
 			'method'             => $this->make_schema_field( FieldType::STRING, 'sanitize_text_field' ),
 			'mode'               => $this->make_schema_field( FieldType::STRING, 'sanitize_text_field' ),
 			'sequence_type'      => $this->make_schema_field( FieldType::STRING, 'sanitize_text_field' ),
+			'package_id'         => $this->make_schema_field( FieldType::STRING, 'sanitize_text_field' ),
 			'donor_id'           => $this->make_schema_field( FieldType::INTEGER, 'absint' ),
 			'campaign_id'        => $this->make_schema_field( FieldType::INTEGER, 'absint' ),
 			'subscription_id'    => $this->make_schema_field( FieldType::INTEGER, 'absint' ),

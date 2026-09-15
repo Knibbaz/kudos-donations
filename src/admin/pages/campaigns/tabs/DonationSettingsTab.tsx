@@ -4,13 +4,115 @@ import {
 	FormTokenField,
 	RadioGroupControl,
 	TextControl,
+	TextAreaControl,
 } from '../../../controls';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { Panel } from '../../../components';
 import { useEffect } from '@wordpress/element';
+import { Button } from '@wordpress/components';
 import { getCurrencySymbol } from '../../../../utils/currency';
 import { useSettingsContext } from '../../../contexts';
 import type { AllSettings } from '../../../../types/all-settings';
+
+const generatePackageId = (): string => {
+	const suffix =
+		typeof crypto !== 'undefined' && 'randomUUID' in crypto
+			? crypto.randomUUID()
+			: Math.random().toString(36).slice(2);
+	return `pkg-${suffix}`;
+};
+
+const PackagesPanel = () => {
+	const { control, getValues } = useFormContext();
+	const { fields, append, remove } = useFieldArray({
+		control,
+		name: 'packages',
+	});
+	const currency = useWatch({ name: 'currency' });
+	const currencySymbol = getCurrencySymbol(currency);
+
+	return (
+		<Panel header={__('Packages', 'kudos-donations')}>
+			<p className="components-base-control__help">
+				{__(
+					'Offer fixed donation packages. Donors can choose a package instead of entering an amount.',
+					'kudos-donations'
+				)}
+			</p>
+			{fields.length === 0 && (
+				<p className="components-base-control__help">
+					{__('No packages yet. Add one below.', 'kudos-donations')}
+				</p>
+			)}
+			{fields.map((field, index) => (
+				<div
+					key={field.id}
+					className="border border-gray-200 rounded p-4"
+				>
+					<TextControl
+						name={`packages.${index}.title`}
+						label={__('Title', 'kudos-donations')}
+						rules={{
+							required: __('Title required', 'kudos-donations'),
+						}}
+					/>
+					<TextAreaControl
+						name={`packages.${index}.description`}
+						label={__('Description', 'kudos-donations')}
+					/>
+					<TextControl
+						name={`packages.${index}.amount`}
+						type="number"
+						prefix={currencySymbol}
+						label={__('Amount', 'kudos-donations')}
+						rules={{
+							required: __('Amount required', 'kudos-donations'),
+							validate: (value) => {
+								const num = parseFloat(value);
+								if (!Number.isFinite(num) || num <= 0) {
+									return __(
+										'Amount must be greater than 0',
+										'kudos-donations'
+									);
+								}
+								const minimum = getValues('minimum_donation');
+								if (minimum && num < parseFloat(minimum)) {
+									return (
+										__(
+											'Each value must be greater than or equal to the minimum donation amount',
+											'kudos-donations'
+										) + ` (${minimum}).`
+									);
+								}
+								return true;
+							},
+						}}
+					/>
+					<Button
+						variant="tertiary"
+						isDestructive
+						onClick={() => remove(index)}
+					>
+						{__('Remove package', 'kudos-donations')}
+					</Button>
+				</div>
+			))}
+			<Button
+				variant="secondary"
+				onClick={() =>
+					append({
+						id: generatePackageId(),
+						title: '',
+						description: '',
+						amount: '',
+					})
+				}
+			>
+				{__('Add package', 'kudos-donations')}
+			</Button>
+		</Panel>
+	);
+};
 
 const SubscriptionPanel = () => {
 	const { settings } = useSettingsContext<AllSettings>();
@@ -173,6 +275,7 @@ export const DonationSettingsTab: AdminTab = {
 	title: __('Donation settings', 'kudos-donations'),
 	panels: [
 		{ name: 'subscription', content: <SubscriptionPanel /> },
+		{ name: 'packages', content: <PackagesPanel /> },
 		{ name: 'payment', content: <PaymentPanel /> },
 	],
 };

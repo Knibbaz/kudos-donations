@@ -67,6 +67,11 @@ export const TransactionEdit = (): React.ReactNode => {
 					type: 'text',
 				},
 				{
+					id: 'package_id',
+					label: 'Package id',
+					type: 'text',
+				},
+				{
 					id: 'invoice_number',
 					label: 'Receipt number',
 					type: 'integer',

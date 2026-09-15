@@ -109,6 +109,12 @@ export const TransactionsTable = (): React.ReactNode => {
 				post.campaign?.title ?? '',
 		},
 		{
+			key: 'package',
+			title: __('Package', 'kudos-donations'),
+			valueCallback: (post: Transaction): React.ReactNode =>
+				post.package_id ? post.title : '',
+		},
+		{
 			key: 'provider',
 			title: __('Provider', 'kudos-donations'),
 			align: 'left',

@@ -94,6 +94,7 @@ export const FormRouter = ({
 			'kudosFormDefaultValues',
 			{
 				recurring: false,
+				package_id: '',
 				business_name: '',
 				city: '',
 				country: '',

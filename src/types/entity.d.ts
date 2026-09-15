@@ -1,3 +1,10 @@
+export interface KudosPackage {
+	id: string;
+	title: string;
+	description: string;
+	amount: number;
+}
+
 export interface Transaction extends BaseEntity {
 	value: number;
 	currency: string;
@@ -5,6 +12,7 @@ export interface Transaction extends BaseEntity {
 	method?: string;
 	mode: 'test' | 'live' | string;
 	sequence_type?: 'oneoff' | 'first' | 'recurring' | string;
+	package_id?: string;
 	donor_id?: number;
 	campaign_id?: number;
 	vendor?: string;
@@ -56,6 +64,7 @@ export interface Campaign extends BaseEntity {
 	additional_funds?: string;
 	amount_type: 'fixed' | 'open' | 'both';
 	fixed_amounts?: string[];
+	packages?: KudosPackage[];
 	minimum_donation?: number;
 	maximum_donation?: number;
 	donation_type: 'one-off' | 'recurring' | 'both';

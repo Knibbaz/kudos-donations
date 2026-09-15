@@ -29,9 +29,13 @@ export const SummaryTab = ({ campaign }: SummaryTabProps) => {
 		payment_title,
 		payment_description,
 		currency,
+		packages,
 	} = campaign;
 	const { getValues } = useFormContext();
 	const values = getValues();
+	const packageName = values.package_id
+		? packages?.find((pkg) => pkg.id === values.package_id)?.title
+		: null;
 	const recurringText = (): string => {
 		const recurring = getValues('recurring');
 		if (!recurring) {
@@ -126,6 +130,12 @@ export const SummaryTab = ({ campaign }: SummaryTabProps) => {
 							: __('anonymous', 'kudos-donations')}
 					</span>
 				</p>
+				{packageName && (
+					<p className="my-1">
+						<strong>{__('Package', 'kudos-donations')}: </strong>
+						<span>{packageName}</span>
+					</p>
+				)}
 				<p className="my-1">
 					<strong>{__('Amount', 'kudos-donations')}: </strong>
 					<span>{getCurrencySymbol(currency) + values.value}</span>

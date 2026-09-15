@@ -20,6 +20,7 @@ class CampaignEntity extends BaseEntity {
 	public ?float $additional_funds;
 	public string $amount_type;
 	public ?array $fixed_amounts;
+	public ?array $packages;
 	public float $minimum_donation;
 	public ?float $maximum_donation;
 	public string $donation_type;
@@ -65,6 +66,7 @@ class CampaignEntity extends BaseEntity {
 			'goal'                       => 500,
 			'amount_type'                => 'fixed',
 			'fixed_amounts'              => [ '5', '10', '25', '50' ],
+			'packages'                   => [],
 			'minimum_donation'           => 1.0,
 			'maximum_donation'           => 5000.0,
 			'donation_type'              => 'oneoff',
