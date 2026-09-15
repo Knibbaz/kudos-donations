@@ -36,4 +36,15 @@ class TransactionEntity extends BaseEntity {
 	public ?string $vendor_customer_id;
 	public ?string $checkout_url;
 	public ?string $receipt_url;
+
+	/**
+	 * The description line used on the receipt (PDF and email).
+	 *
+	 * For a package purchase the title holds a snapshot of the package name, so
+	 * the receipt keeps showing what was bought even if the package is later
+	 * edited or removed. Plain donations have no title, hence the fallback.
+	 */
+	public function get_description(): string {
+		return '' !== $this->title ? $this->title : __( 'Donation', 'kudos-donations' );
+	}
 }

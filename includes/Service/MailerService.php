@@ -133,7 +133,7 @@ class MailerService extends AbstractRegistrable implements HasSettingsInterface 
 		$args = [
 			'name'          => $donor->name ?? '',
 			'date'          => $transaction->created_at,
-			'description'   => $transaction->title,
+			'description'   => $transaction->get_description(),
 			'amount'        => ( ! empty( $transaction->currency ) ? html_entity_decode(
 				Utils::get_currencies()[ $transaction->currency ]
 			) : '' ) . number_format_i18n(

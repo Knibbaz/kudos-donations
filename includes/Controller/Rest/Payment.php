@@ -279,6 +279,23 @@ class Payment extends BaseRestController {
 			}
 			// The package amount is authoritative — never trust the client-supplied value.
 			$values['value'] = $package['amount'];
+
+			/**
+			 * Packages are one-off purchases: a package describes a single concrete
+			 * item, not a monthly commitment. The form hides packages on recurring
+			 * campaigns, but a stale client could still submit both, so the server
+			 * decides here rather than charging a package amount every period.
+			 */
+			if ( 'true' === ( $values['recurring'] ?? '' ) ) {
+				$this->get_logger()->debug(
+					'Package selected on a recurring donation. Falling back to one-off.',
+					[
+						'campaign_id' => $campaign->id,
+						'package_id'  => $package['id'],
+					]
+				);
+				$values['recurring'] = 'false';
+			}
 		}
 
 		$defaults = [
@@ -361,7 +378,7 @@ class Payment extends BaseRestController {
 		$transaction        = $this->transaction_repository->new_entity(
 			[
 				'donor_id'      => $donor_id ?? null,
-				'title'         => $package['title'] ?? null,
+				'title'         => $package['title'] ?? '',
 				'value'         => $args['value'],
 				'currency'      => $args['currency'],
 				'status'        => PaymentStatus::OPEN,
@@ -435,9 +452,23 @@ class Payment extends BaseRestController {
 		}
 
 		foreach ( $campaign->packages as $package ) {
-			if ( \is_array( $package ) && ( $package['id'] ?? null ) === $package_id ) {
-				return $package;
+			if ( ! \is_array( $package ) || ( $package['id'] ?? null ) !== $package_id ) {
+				continue;
 			}
+
+			// Stored packages are sanitized on save, but normalise here so the payment
+			// never runs on a malformed row (a zero amount would charge nothing).
+			$amount = isset( $package['amount'] ) ? (float) $package['amount'] : 0.0;
+			if ( $amount <= 0 ) {
+				return null;
+			}
+
+			return [
+				'id'          => (string) $package['id'],
+				'title'       => (string) ( $package['title'] ?? '' ),
+				'description' => (string) ( $package['description'] ?? '' ),
+				'amount'      => $amount,
+			];
 		}
 
 		return null;

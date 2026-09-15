@@ -58,8 +58,9 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 	const optional = __('optional', 'kudos-donations');
 	const emailRequired = email_required || 'recurring' === donation_type;
 	const isRecurringAllowed = useMemo(() => {
-		return donation_type === 'both' && !!watchEmail;
-	}, [donation_type, watchEmail]);
+		// A package is a single concrete item, so it is always a one-off purchase.
+		return donation_type === 'both' && !!watchEmail && !watchPackage;
+	}, [donation_type, watchEmail, watchPackage]);
 
 	const fixedAmountOptions: RadioGroupOption[] = useMemo(() => {
 		return fixed_amounts?.map((value) => ({
@@ -111,10 +112,10 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 	useEffect(() => {
 		if (donation_type !== 'both') {
 			setValue('recurring', donation_type === 'recurring');
-		} else if (!watchEmail) {
+		} else if (!watchEmail || watchPackage) {
 			setValue('recurring', false);
 		}
-	}, [donation_type, setValue, watchEmail]);
+	}, [donation_type, setValue, watchEmail, watchPackage]);
 
 	useEffect(() => {
 		if (singleValue) {
@@ -247,9 +248,17 @@ export const InitialTab = ({ campaign }: InitialTabProps) => {
 			{donation_type === 'both' && email_enabled && (
 				<div className="flex justify-center mt-3">
 					<ToggleControl
-						isDisabled={!watchEmail}
+						isDisabled={!isRecurringAllowed}
 						name="recurring"
 						label={__('Recurring donation', 'kudos-donations')}
+						help={
+							watchPackage
+								? __(
+										'Packages are a one-off donation.',
+										'kudos-donations'
+									)
+								: undefined
+						}
 					/>
 				</div>
 			)}

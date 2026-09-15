@@ -126,10 +126,6 @@ class ReceiptService extends AbstractRegistrable implements HasSettingsInterface
 			'company_address' => get_option( self::SETTING_INVOICE_COMPANY_ADDRESS ),
 			'vat_number'      => get_option( self::SETTING_INVOICE_VAT_NUMBER ),
 			'currency_symbol' => Utils::get_currencies()[ $transaction->currency ] ?? '',
-			'items'           => [
-				$transaction->title            => number_format_i18n( $transaction->value, 2 ),
-				__( 'VAT', 'kudos-donations' ) => 0,
-			],
 			'total'           => Utils::format_value_for_display( (string) $transaction->value ),
 		];
 
@@ -150,6 +146,15 @@ class ReceiptService extends AbstractRegistrable implements HasSettingsInterface
 			$data['donor_city']     = $donor->city ?? '';
 			$data['donor_country']  = $donor->country ?? '';
 		}
+
+		/**
+		 * Build the translated strings after the donor's locale has been applied so
+		 * that the line items are in the same language as the rest of the receipt.
+		 */
+		$data['items'] = [
+			$transaction->get_description() => number_format_i18n( $transaction->value, 2 ),
+			__( 'VAT', 'kudos-donations' )  => 0,
+		];
 
 		// Add text.
 		$data['text'] = [
